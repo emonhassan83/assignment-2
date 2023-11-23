@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import { UserServices } from "./user.service";
+import { TUser } from "./user.interface";
+import { UserModel } from "../user.model";
 
 const createUser = async (req: Request, res: Response) => {
   try {
@@ -22,47 +25,100 @@ const createUser = async (req: Request, res: Response) => {
 };
 
 const getAllUsers = async (req: Request, res: Response) => {
-try {
+  try {
     const result = await UserServices.getAllUsersFromDB();
     res.status(200).json({
-        success: true,
-        message: "Users are retrieve successfully!",
-        data: result,
-      });
-
-} catch (error) {
+      success: true,
+      message: "Users are retrieve successfully!",
+      data: result,
+    });
+  } catch (error) {
     res.status(500).json({
-        success: false,
-        message: "User not found",
-        error: error,
-      });
-}
-}
+      success: false,
+      message: "User not found",
+      error: error,
+    });
+  }
+};
 
 const getSingleUser = async (req: Request, res: Response) => {
-try {
-    const {userId} = req.params;
+  try {
+    const { userId } = req.params;
     const result = await UserServices.getSingleUsersFromDB(userId);
-    
-    res.status(200).json({
-        success: true,
-        message: "User is retrieve successfully!",
-        data: result,
-      });
 
-} catch (error) {
-    res.status(500).json({
+    if (!result) {
+      return res.status(404).json({
         success: false,
         message: "User not found",
-        error: error,
       });
-}
-}
+    }
 
+    const userWithoutPassword: TUser = { ...result.toObject() };
+    delete (userWithoutPassword as { password?: any }).password;
+
+    res.status(200).json({
+      success: true,
+      message: "User is retrieve successfully!",
+      data: userWithoutPassword,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "User not found",
+      error: error.message,
+    });
+  }
+};
+
+const updateAUser = async (req: Request, res: Response) => {
+  try {
+    const updatedUserData: TUser = req.body;
+    const { userId } = req.params;
+
+    const existingUser = await UserServices.updateAUser(
+      userId,
+      updatedUserData
+    );
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updatedUser = await UserModel.findOneAndUpdate(
+      { userId: userId },
+      { $set: updatedUserData },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updatedUserWithoutPassword: TUser = { ...updatedUser.toObject() };
+    delete (updatedUserWithoutPassword as { password?: any }).password;
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully!",
+      data: updatedUserWithoutPassword,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating user",
+      error: error.message,
+    });
+  }
+};
 
 export const UserControllers = {
-    createUser,
-    getAllUsers,
-    getSingleUser,
-
-}
+  createUser,
+  getAllUsers,
+  getSingleUser,
+  updateAUser,
+};
