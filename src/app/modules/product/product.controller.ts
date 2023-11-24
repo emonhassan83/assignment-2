@@ -57,9 +57,31 @@ const getOrdersForUser = async (req: Request, res: Response) => {
   };
 
 
+  const calculateTotalPriceForUser = async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.userId);
+  
+      // Calculate total price for the user
+      const totalPrice = await ProductServices.calculateTotalPriceForUserFromDB(userId);
+  
+      res.status(200).json({
+        success: true,
+        message: "Total price calculated successfully!",
+        data: { totalPrice },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      });
+    }
+  };
+
 
 export const ProductControllers = {
   addProductToOrder,
   getOrdersForUser,
+  calculateTotalPriceForUser,
   
 };
