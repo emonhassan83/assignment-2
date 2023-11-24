@@ -1,17 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import { ProductServices } from "./product.service";
+import { orderValidationSchema } from "../user/user.validation";
 
 const addProductToOrder = async (req: Request, res: Response) => {
   try {
     const userId = Number(req.params.userId);
     const { productName, price, quantity } = req.body;
 
-    const result = await ProductServices.addProductToDB(userId, {
-      productName,
-      price,
-      quantity,
-    });
+    const { error, value } = orderValidationSchema.validate({ productName, price, quantity });
+
+    if (error) {
+      res.status(500).json({
+        success: false,
+        message: 'something went wrong',
+        error,
+      })
+    }
+
+    const result = await ProductServices.addProductToDB(userId, value);
 
     if (result as any) {
       res.status(200).json({

@@ -3,12 +3,23 @@ import { Request, Response } from "express";
 import { UserServices } from "./user.service";
 import { TUser } from "./user.interface";
 import { UserModel } from "../user.model";
+import userValidationSchema from "./user.validation";
 
 const createUser = async (req: Request, res: Response) => {
   try {
     const user = req.body;
 
-    const result = await UserServices.createUserToDB(user);
+    const { error, value } = userValidationSchema.validate(user);
+
+    if (error) {
+      res.status(500).json({
+        success: false,
+        message: 'something went wrong',
+        error,
+      })
+    }
+
+    const result = await UserServices.createUserToDB(value);
 
     res.status(200).json({
       success: true,

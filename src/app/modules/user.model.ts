@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
 import { TOrder, TUser } from "./user/user.interface";
+import bcrypt from 'bcrypt';
+import config from "../config";
 
 const orderSchema = new Schema<TOrder>({
   productName: { type: String, required: true },
@@ -25,6 +27,12 @@ const userSchema = new Schema<TUser>({
     country: { type: String, required: true },
   },
   orders: { type: [orderSchema] },
+});
+
+userSchema.pre('save', async function (next) {
+  // hashing password and save into database
+  this.password = await bcrypt.hash(this.password, Number(config.bcrypt_salt_round))
+  next();
 });
 
 export const UserModel = model<TUser>('User', userSchema);
