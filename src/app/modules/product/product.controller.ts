@@ -46,7 +46,6 @@ const getOrdersForUser = async (req: Request, res: Response) => {
     try {
       const userId = Number(req.params.userId);
   
-      // Retrieve orders for the user
       const orders = await ProductServices.getOrdersForUserFromDB(userId);
   
       res.status(200).json({
@@ -68,7 +67,6 @@ const getOrdersForUser = async (req: Request, res: Response) => {
     try {
       const userId = Number(req.params.userId);
   
-      // Calculate total price for the user
       const totalPrice = await ProductServices.calculateTotalPriceForUserFromDB(userId);
   
       res.status(200).json({
