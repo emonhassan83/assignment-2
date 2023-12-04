@@ -38,4 +38,4 @@ npm run start:dev
 ```
 
 
-#### Hosting site Link: https://assignment-2-946fmiz2b-emon83.vercel.app
+#### Hosting site Link: https://assignment-2-weld-three.vercel.app/
